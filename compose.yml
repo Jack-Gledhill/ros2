@@ -1,0 +1,51 @@
+name: ros2
+
+networks:
+  default:
+    name: ros2
+  proxy:
+    name: proxy
+    external: true
+
+volumes:
+  workspace:
+
+services:
+  ros2:
+    container_name: ros2
+    build: ./
+    volumes:
+      - "./:/home/student/ros2_ws/src"
+      - workspace:/home/student/ros2_ws
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities:
+                - gpu
+    environment:
+      DISPLAY: novnc:0.0
+      NVIDIA_DRIVER_CAPABILITIES: all
+      __NV_PRIME_RENDER_OFFLOAD: 1
+      __GLX_VENDOR_LIBRARY_NAME: nvidia
+
+  novnc:
+    container_name: ros2-novnc
+    image: theasp/novnc:latest
+    environment:
+      DISPLAY_WIDTH: 1920
+      DISPLAY_HEIGHT: 1080
+    networks:
+      - default
+      - proxy
+    restart: unless-stopped
+    labels:
+      traefik.enable: true
+      traefik.http.routers.ros2-novnc.rule: "Host(`ros2.starsystem.dev`)"
+      traefik.http.services.ros2-novnc.loadbalancer.server.port: 8080
+      traefik.http.routers.ros2-novnc.middlewares: basic-auth@file
