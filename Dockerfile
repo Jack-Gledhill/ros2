@@ -5,6 +5,12 @@ ENV ROS_DISTRO=jazzy
 ENV QT_X11_NO_MITSHM=1
 ENV EDITOR=nano
 
+# Update nvidia drivers
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/sbsa/cuda-keyring_1.1-1_all.deb && \
+    dpkg -i cuda-keyring_1.1-1_all.deb && \
+    apt-get update && \
+    apt-get install nvidia-driver-pinning-580
+
 # Base deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl gnupg lsb-release \
